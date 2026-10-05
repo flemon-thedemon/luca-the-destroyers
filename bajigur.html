@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Web Hub + Gemini</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f1f5f9;
+    overflow: hidden;
+}
+
+/* ================= HEADER ================= */
+
+.header {
+    height: 60px;
+    background: #111827;
+    color: white;
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    gap: 15px;
+}
+
+.hamburger {
+    border: none;
+    background: transparent;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+}
+
+.hamburger:hover {
+    background: #374151;
+}
+
+.title {
+    font-size: 19px;
+    font-weight: bold;
+}
+
+/* ================= URL ================= */
+
+.urlbar {
+    height: 55px;
+    background: white;
+    display: flex;
+    gap: 8px;
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+}
+
+.urlbar input {
+    flex: 1;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 0 12px;
+    outline: none;
+}
+
+.urlbar button {
+    border: none;
+    background: #2563eb;
+    color: white;
+    border-radius: 8px;
+    padding: 0 20px;
+    cursor: pointer;
+}
+
+/* ================= WEBSITE ================= */
+
+.web {
+    height: calc(100vh - 115px);
+}
+
+.web iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* ================= OVERLAY ================= */
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.35);
+    z-index: 50;
+    display: none;
+}
+
+.overlay.show {
+    display: block;
+}
+
+/* ================= CHAT PANEL ================= */
+
+.chat-panel {
+    position: fixed;
+
+    top: 0;
+    left: -390px;
+
+    width: 390px;
+    max-width: 92vw;
+    height: 100vh;
+
+    background: white;
+
+    z-index: 100;
+
+    box-shadow: 5px 0 25px rgba(0,0,0,.25);
+
+    transition: left .25s ease;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-panel.open {
+    left: 0;
+}
+
+/* CHAT HEADER */
+
+.chat-header {
+    height: 60px;
+    flex-shrink: 0;
+
+    background: #111827;
+    color: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 15px;
+}
+
+.chat-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ai-icon {
+    width: 35px;
+    height: 35px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #2563eb;
+    border-radius: 50%;
+}
+
+.chat-title strong {
+    display: block;
+}
+
+.chat-title small {
+    color: #cbd5e1;
+}
+
+.close-chat {
+    border: none;
+    background: transparent;
+    color: white;
+    font-size: 27px;
+    cursor: pointer;
+}
+
+/* ================= MESSAGES ================= */
+
+.messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    background: #f8fafc;
+}
+
+.message {
+    max-width: 88%;
+    padding: 11px 14px;
+
+    border-radius: 14px;
+
+    line-height: 1.5;
+
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.bot {
+    align-self: flex-start;
+    background: #e5e7eb;
+    color: #111827;
+
+    border-bottom-left-radius: 4px;
+}
+
+.user {
+    align-self: flex-end;
+    background: #2563eb;
+    color: white;
+
+    border-bottom-right-radius: 4px;
+}
+
+/* ================= INPUT ================= */
+
+.chat-input {
+    flex-shrink: 0;
+
+    padding: 10px;
+
+    border-top: 1px solid #ddd;
+
+    display: flex;
+    gap: 8px;
+
+    background: white;
+}
+
+.chat-input textarea {
+    flex: 1;
+
+    resize: none;
+
+    min-height: 43px;
+    max-height: 120px;
+
+    border: 1px solid #d1d5db;
+
+    border-radius: 10px;
+
+    padding: 11px;
+
+    outline: none;
+
+    font-size: 14px;
+}
+
+.send {
+    width: 45px;
+    height: 43px;
+
+    border: none;
+
+    border-radius: 10px;
+
+    background: #2563eb;
+    color: white;
+
+    font-size: 19px;
+
+    cursor: pointer;
+}
+
+.send:disabled {
+    opacity: .5;
+}
+
+/* ================= MOBILE ================= */
+
+@media(max-width:500px) {
+
+    .chat-panel {
+        width: 100%;
+        max-width: 100%;
+    }
+
+}
+</style>
+</head>
+
+<body>
+
+
+<!-- ==================================================
+     HEADER
+================================================== -->
+
+<header class="header">
+
+    <button class="hamburger" id="hamburger">
+        ☰
+    </button>
+
+    <div class="title">
+        Web Hub
+    </div>
+
+</header>
+
+
+<!-- ==================================================
+     URL BAR
+================================================== -->
+
+<div class="urlbar">
+
+    <input
+        id="url"
+        type="text"
+        placeholder="Masukkan alamat website..."
+    >
+
+    <button id="openWebsite">
+        Buka
+    </button>
+
+</div>
+
+
+<!-- ==================================================
+     WEBSITE
+================================================== -->
+
+<div class="web">
+
+    <iframe
+        id="browser"
+        src="https://example.com">
+    </iframe>
+
+</div>
+
+
+<!-- ==================================================
+     OVERLAY
+================================================== -->
+
+<div
+    class="overlay"
+    id="overlay">
+</div>
+
+
+<!-- ==================================================
+     CHATBOT
+================================================== -->
+
+<div
+    class="chat-panel"
+    id="chatPanel">
+
+
+    <!-- CHAT HEADER -->
+
+    <div class="chat-header">
+
+        <div class="chat-title">
+
+            <div class="ai-icon">
+                🤖
+            </div>
+
+            <div>
+                <strong>Gemini AI</strong>
+                <small>Asisten pencarian</small>
+            </div>
+
+        </div>
+
+        <button
+            class="close-chat"
+            id="closeChat">
+            ×
+        </button>
+
+    </div>
+
+
+    <!-- MESSAGES -->
+
+    <div
+        class="messages"
+        id="messages">
+
+        <div class="message bot">
+            Halo! 👋
+
+            Saya Gemini AI.
+
+            Kamu bisa langsung bertanya di sini tanpa meninggalkan website yang sedang kamu buka.
+        </div>
+
+    </div>
+
+
+    <!-- INPUT -->
+
+    <div class="chat-input">
+
+        <textarea
+            id="input"
+            placeholder="Cari atau tanyakan sesuatu..."
+            rows="1">
+        </textarea>
+
+        <button
+            class="send"
+            id="send">
+            ➤
+        </button>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* ==================================================
+   5 GEMINI API KEYS
+==================================================
+
+   GANTI DENGAN 5 API KEY BARU MILIKMU.
+
+================================================== */
+
+const API_KEYS = [
+
+    "AIzaSyBJT3isLdS_duk6jacH5x7bpxs-fiq8OGA",
+
+    "AIzaSyAizWOJL82vxW-GkUlcA7W6WZ6opz9IZSU",
+
+    "AIzaSyAuP8tHjFpDZdYH8eXf8rkQR1QhoVhP1hc",
+
+    "AIzaSyA-KsZkA83F36UK1vXkTw6k85B0gg1k7wI",
+
+    "AIzaSyBBaxMF2f0XBzULhQcbTM6JVyF-OLguwM8"
+
+];
+
+
+/* ==================================================
+   KEY ROTATION
+================================================== */
+
+let keyIndex = 0;
+
+function getNextKey() {
+
+    const key = API_KEYS[keyIndex];
+
+    keyIndex++;
+
+    if (keyIndex >= API_KEYS.length) {
+        keyIndex = 0;
+    }
+
+    return key;
+}
+
+
+/* ==================================================
+   CHAT HISTORY
+================================================== */
+
+let history = [];
+
+
+/* ==================================================
+   ELEMENT
+================================================== */
+
+const hamburger =
+    document.getElementById("hamburger");
+
+const chatPanel =
+    document.getElementById("chatPanel");
+
+const overlay =
+    document.getElementById("overlay");
+
+const closeChat =
+    document.getElementById("closeChat");
+
+const messages =
+    document.getElementById("messages");
+
+const input =
+    document.getElementById("input");
+
+const send =
+    document.getElementById("send");
+
+
+/* ==================================================
+   OPEN CHAT
+================================================== */
+
+function openChat() {
+
+    chatPanel.classList.add("open");
+
+    overlay.classList.add("show");
+
+    input.focus();
+
+}
+
+
+/* ==================================================
+   CLOSE CHAT
+================================================== */
+
+function closeChatPanel() {
+
+    chatPanel.classList.remove("open");
+
+    overlay.classList.remove("show");
+
+}
+
+
+/* ==================================================
+   EVENTS
+================================================== */
+
+hamburger.addEventListener(
+    "click",
+    openChat
+);
+
+closeChat.addEventListener(
+    "click",
+    closeChatPanel
+);
+
+overlay.addEventListener(
+    "click",
+    closeChatPanel
+);
+
+
+/* ==================================================
+   ADD MESSAGE
+================================================== */
+
+function addMessage(
+    text,
+    type
+) {
+
+    const div =
+        document.createElement("div");
+
+    div.className =
+        "message " + type;
+
+    div.textContent = text;
+
+    messages.appendChild(div);
+
+    messages.scrollTop =
+        messages.scrollHeight;
+
+}
+
+
+/* ==================================================
+   GEMINI
+================================================== */
+
+async function askGemini(question) {
+
+    const apiKey =
+        getNextKey();
+
+
+    const url =
+        "https://generativelanguage.googleapis.com/" +
+        "v1beta/models/gemini-2.5-flash:generateContent" +
+        "?key=" +
+        encodeURIComponent(apiKey);
+
+
+    const contents = [
+
+        ...history,
+
+        {
+            role: "user",
+
+            parts: [
+                {
+                    text: question
+                }
+            ]
+        }
+
+    ];
+
+
+    const response =
+        await fetch(
+            url,
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify({
+
+                    contents: contents
+
+                })
+            }
+        );
+
+
+    const data =
+        await response.json();
+
+
+    if (!response.ok) {
+
+        throw new Error(
+            data.error?.message ||
+            "Gemini API gagal."
+        );
+
+    }
+
+
+    return data
+        ?.candidates?.[0]
+        ?.content?.parts?.[0]
+        ?.text
+        ||
+        "Tidak ada jawaban dari Gemini.";
+
+}
+
+
+/* ==================================================
+   SEND MESSAGE
+================================================== */
+
+async function sendMessage() {
+
+    const question =
+        input.value.trim();
+
+
+    if (!question) {
+        return;
+    }
+
+
+    addMessage(
+        question,
+        "user"
+    );
+
+
+    input.value = "";
+
+    send.disabled = true;
+
+
+    const loading =
+        document.createElement("div");
+
+    loading.className =
+        "message bot";
+
+    loading.textContent =
+        "🔎 Sedang mencari jawaban...";
+
+    messages.appendChild(
+        loading
+    );
+
+
+    messages.scrollTop =
+        messages.scrollHeight;
+
+
+    try {
+
+        const answer =
+            await askGemini(
+                question
+            );
+
+
+        loading.remove();
+
+
+        addMessage(
+            answer,
+            "bot"
+        );
+
+
+        /* SIMPAN HISTORY */
+
+        history.push({
+
+            role: "user",
+
+            parts: [
+                {
+                    text: question
+                }
+            ]
+
+        });
+
+
+        history.push({
+
+            role: "model",
+
+            parts: [
+                {
+                    text: answer
+                }
+            ]
+
+        });
+
+
+    } catch(error) {
+
+        loading.remove();
+
+
+        addMessage(
+            "❌ " + error.message,
+            "bot"
+        );
+
+    }
+
+
+    send.disabled = false;
+
+    input.focus();
+
+}
+
+
+/* ==================================================
+   SEND BUTTON
+================================================== */
+
+send.addEventListener(
+    "click",
+    sendMessage
+);
+
+
+/* ==================================================
+   ENTER
+================================================== */
+
+input.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (
+            event.key === "Enter" &&
+            !event.shiftKey
+        ) {
+
+            event.preventDefault();
+
+            sendMessage();
+
+        }
+
+    }
+);
+
+
+/* ==================================================
+   OPEN WEBSITE
+================================================== */
+
+document
+    .getElementById("openWebsite")
+    .addEventListener(
+        "click",
+        function() {
+
+            let url =
+                document
+                .getElementById("url")
+                .value
+                .trim();
+
+
+            if (!url) {
+                return;
+            }
+
+
+            if (
+                !url.startsWith("http://") &&
+                !url.startsWith("https://")
+            ) {
+
+                url =
+                    "https://" + url;
+
+            }
+
+
+            document
+                .getElementById("browser")
+                .src = url;
+
+        }
+    );
+
+
+/* ENTER DI URL */
+
+document
+    .getElementById("url")
+    .addEventListener(
+        "keydown",
+        function(event) {
+
+            if (event.key === "Enter") {
+
+                document
+                    .getElementById("openWebsite")
+                    .click();
+
+            }
+
+        }
+    );
+
+</script>
+
+</body>
+</html>
