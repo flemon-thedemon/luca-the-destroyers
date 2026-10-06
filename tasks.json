@@ -28,5 +28,11 @@
     "text": "Tugas psu",
     "completed": false,
     "createdAt": "2026-10-06T00:39:40.374Z"
+  },
+  {
+    "id": 1791247183869,
+    "text": "Bahasa inggris",
+    "completed": false,
+    "createdAt": "2026-10-06T00:39:43.869Z"
   }
 ]
